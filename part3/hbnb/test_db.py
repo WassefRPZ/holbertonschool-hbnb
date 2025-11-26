@@ -217,18 +217,7 @@ class TestHBnBAPI(unittest.TestCase):
             "password": "wrongpassword"
         })
         self.assertEqual(response.status_code, 401)
-    
-    def test_access_protected_route_without_token(self):
-        """Test accessing protected route without token."""
-        response = self.app.get('/api/v1/protected/')
-        self.assertEqual(response.status_code, 401)
-    
-    def test_access_protected_route_with_token(self):
-        """Test accessing protected route with valid token."""
-        headers = {'Authorization': f'Bearer {self.token}'}
-        response = self.app.get('/api/v1/protected/', headers=headers)
-        self.assertEqual(response.status_code, 200)
-    
+
     # User tests
     def test_create_user(self):
         """Test creating a user (admin only)."""

@@ -22,6 +22,9 @@ class UserList(Resource):
     def post(self):
         """Register a new user (admin only)"""
         # Determine admin status from JWT claims
+        identity = get_jwt_identity()
+        current_user = identity.get('id') or identity.get('user_id')
+        is_admin = bool(identity.get('is_admin', False))
         jwt_claims = None
         try:
             jwt_claims = get_jwt()
@@ -33,7 +36,8 @@ class UserList(Resource):
             is_admin = bool(jwt_claims.get('is_admin', False))
         if not is_admin:
             return {'error': 'Admin privileges required'}, 403
-
+        if current_user != user_data.get('id') or user_data.get('user_id'):
+            return {'error': 'Not your own user'}, 403
         user_data = api.payload or {}
 
         existing_user = facade.get_user_by_email(user_data.get('email'))
