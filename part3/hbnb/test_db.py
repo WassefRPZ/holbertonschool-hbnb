@@ -4,6 +4,7 @@
 import unittest
 import json
 import uuid
+import time
 from run import app
 from flask_jwt_extended import create_access_token
 from app.models.user import User
@@ -16,9 +17,11 @@ class TestHBnBAPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test environment once before all tests."""
-        cls.app = app.test_client()
-        cls.app_context = app.app_context()
+        cls.app_instance = create_app('testing')
+        cls.app = cls.app_instance.test_client()
+        cls.app_context = cls.app_instance.app_context()
         cls.app_context.push()
+        db.create_all()
         
         # Create an admin user for tests (directly in database)
         admin_email = f"admin_{str(uuid.uuid4())[:8]}@example.com"
@@ -39,6 +42,7 @@ class TestHBnBAPI(unittest.TestCase):
     def tearDownClass(cls):
         """Clean up after all tests."""
         db.session.remove()
+        db.drop_all()
         cls.app_context.pop()
 
     def setUp(self):
@@ -394,7 +398,7 @@ class TestHBnBAPI(unittest.TestCase):
     def test_update_amenity(self):
         """Test updating an amenity (admin only)."""
         headers = {'Authorization': f'Bearer {self.admin_token}'}
-        new_name = f"Updated Amenity {uuid.uuid4()}"
+        new_name = f"Upd {str(uuid.uuid4())[:8]}"
         response = self.app.put(f'/api/v1/amenities/{self.amenity_id}', 
             json={
                 'name': new_name
@@ -668,6 +672,10 @@ class TestHBnBAPI(unittest.TestCase):
         headers = {'Authorization': f'Bearer {self.admin_token}'}
         response = self.app.delete(f'/api/v1/reviews/{self.review_id}', headers=headers)
         self.assertEqual(response.status_code, 200)
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
 
 
 if __name__ == '__main__':
