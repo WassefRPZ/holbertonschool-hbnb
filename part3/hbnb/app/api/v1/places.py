@@ -66,6 +66,9 @@ class PlaceList(Resource):
 
         data = api.payload or {}
 
+        if not is_admin and data.get('owner_id') and data.get('owner_id') != current_user:
+            return {"error": "Unauthorized action"}, 403
+
         if not is_admin:
             data['owner_id'] = current_user
         try:
