@@ -81,8 +81,14 @@ class HBnBFacade:
             raise ValueError("title too long")
 
         price = data.get("price")
-        if price is not None and price < 0:
+        if price is not None and price <= 0:
             raise ValueError("invalid price")
+
+        # Check for duplicate title
+        existing_places = self.place_repo.get_all()
+        for p in existing_places:
+            if getattr(p, 'title', '') == title:
+                 raise ValueError("Place with same title already exists")
 
         latitude = data.get("latitude")
         if latitude is not None and not (-90 <= latitude <= 90):

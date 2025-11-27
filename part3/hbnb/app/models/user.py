@@ -1,6 +1,7 @@
 from app import db, bcrypt
 from app.models.base_model import BaseModel
 from sqlalchemy.ext.hybrid import hybrid_property
+import re
 
 class User(BaseModel):
     __tablename__ = 'users'
@@ -49,7 +50,8 @@ class User(BaseModel):
         if value is None:
             raise ValueError("Invalid email")
         v = value.strip().lower()
-        if (not v) or (' ' in v) or ('@' not in v) or ('.' not in v):
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, v):
             raise ValueError("Invalid email")
         self._email = v
     @hybrid_property

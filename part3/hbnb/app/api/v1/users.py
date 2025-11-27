@@ -18,26 +18,8 @@ class UserList(Resource):
     @api.response(201, 'User successfully created')
     @api.response(400, 'Email already registered')
     @api.response(400, 'Invalid input data')
-    @jwt_required()
     def post(self):
-        """Register a new user (admin only)"""
-        # Determine admin status from JWT claims
-        identity = get_jwt_identity()
-        if isinstance(identity, dict):
-            current_user = identity.get('id') or identity.get('user_id')
-            is_admin = bool(identity.get('is_admin', False))
-        jwt_claims = None
-        try:
-            jwt_claims = get_jwt()
-        except Exception:
-            jwt_claims = None
-
-        is_admin = False
-        if jwt_claims and 'is_admin' in jwt_claims:
-            is_admin = bool(jwt_claims.get('is_admin', False))
-        if not is_admin:
-            return {'error': 'Admin privileges required'}, 403
-
+        """Register a new user"""
         user_data = api.payload or {}
 
         existing_user = facade.get_user_by_email(user_data.get('email'))
@@ -47,7 +29,7 @@ class UserList(Resource):
             new_user = facade.create_user(user_data)
             return new_user.to_dict(), 201
         except ValueError as e:
-            return {'error': str(e)}, 400
+            return {'message': str(e)}, 400
 
     @api.response(200, 'List of users retrieved successfully')
     def get(self):
@@ -66,7 +48,7 @@ class UserResource(Resource):
             return {'error': 'User not found'}, 404
         return user.to_dict(), 200
 
-    @api.expect(user_model, validate=True)
+    @api.expect(user_model, validate=False)
     @api.response(200, 'User updated successfully')
     @api.response(404, 'User not found')
     @api.response(400, 'Invalid input data')
